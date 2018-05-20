@@ -88,7 +88,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         xcb_window_t root, xcb_window_t new_parent)
 {
     char *command = NULL;
-    char *class = NULL;
+    char *name = NULL;
 
     xcb_query_tree_cookie_t cookie;
     xcb_query_tree_reply_t *reply = NULL;
@@ -107,13 +107,13 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
     for (int i = 0; i < children_length; i++) {
         command =
             cadel_xcb_get_property_string(connection, children[i], "WM_COMMAND");
-        class =
-            cadel_xcb_get_property_string(connection, children[i], "WM_CLASS");
+        name =
+            cadel_xcb_get_property_string(connection, children[i], "WM_NAME");
 
-        printf("command='%s', class='%s'\n", command, class);
+        if ((strncmp(command, "openscad", 8) == 0) &&
+                (strncmp(name, "openscad!", 9) != 0)) {
 
-        if (strncmp(command, "openscad", 8) == 0) {
-            printf("Reparenting window 0x%08x (command='%s', class='%s')\n", children[i], command, class);
+            printf("Reparenting window 0x%08x (command='%s', name='%s')\n", children[i], command, name);
 
             if (!cadel_xcb_hide_window(connection, children[i])) {
                 warn("xcb: window 0x%08x could not be hidden.", children[i]);
