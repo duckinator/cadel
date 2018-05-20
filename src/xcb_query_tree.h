@@ -1,6 +1,7 @@
 #ifndef CADEL__XCB_QUERY_TREE
 #define CADEL__XCB_QUERY_TREE
 
+#include <stdbool.h>
 #include <xcb/xcb.h>
 
 typedef struct cadel_xcb_window_list_s {
@@ -8,7 +9,7 @@ typedef struct cadel_xcb_window_list_s {
     size_t length;
 } cadel_xcb_window_list_t;
 
-cadel_xcb_window_list_t *cadel_xcb_query_tree(xcb_connection_t *connection,
-        xcb_window_t root);
+bool cadel_xcb_query_tree(cadel_xcb_window_list_t *results,
+        xcb_connection_t *connection, xcb_window_t root);
 
 #endif
