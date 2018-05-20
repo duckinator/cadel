@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     cadel_print_screen_information(screen);
 
     // Create the main window.
-    xcb_window_t window = cadel_xcb_create_window(connection, screen, 0, 0, 150, 150);
+    xcb_window_t window = cadel_xcb_create_window(connection, screen, 0, 0, 500, 500);
     // Actually display the main window.
     bool window_shown = cadel_xcb_show_window(connection, window);
     if (!window_shown) {
