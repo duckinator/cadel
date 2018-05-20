@@ -6,6 +6,7 @@
 #include <string.h>
 #include <xcb/xcb.h>
 #include "xcb_property.h"
+#include "xcb_query_tree.h"
 
 // Subset of the arguments that get passed to xcb_create_window().
 // https://xcb.freedesktop.org/tutorial/basicwindowsanddrawing/
@@ -87,55 +88,49 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         xcb_window_t root, xcb_window_t new_parent)
 {
+    xcb_window_t child;
     char *command = NULL;
     char *name = NULL;
 
-    xcb_query_tree_cookie_t cookie;
-    xcb_query_tree_reply_t *reply = NULL;
-    xcb_window_t *children = NULL;
-    int children_length;
-
-    cookie = xcb_query_tree(connection, root);
-    reply = xcb_query_tree_reply(connection, cookie, NULL);
-    if (!reply) {
+    cadel_xcb_window_list_t *children = cadel_xcb_query_tree(connection, root);
+    if (!children) {
         return false;
     }
 
-    children = xcb_query_tree_children(reply);
-    children_length = xcb_query_tree_children_length(reply);
+    if (children->length == 0) {
+        free(children);
+        return false;
+    }
 
-    for (int i = 0; i < children_length; i++) {
-        command = cadel_xcb_get_property_string(connection, children[i], "WM_COMMAND");
-        name    = cadel_xcb_get_property_string(connection, children[i], "WM_NAME");
+    for (int i = 0; i < children->length; i++) {
+        child   = children->windows[i];
+        command = cadel_xcb_get_property_string(connection, child, "WM_COMMAND");
+        name    = cadel_xcb_get_property_string(connection, child, "WM_NAME");
 
         if ((strncmp(command, "openscad", 8) == 0) &&
                 (strncmp(name, "openscad!", 9) != 0)) {
 
-            printf("Reparenting window 0x%08x (command='%s', name='%s')\n", children[i], command, name);
+            printf("Reparenting window 0x%08x (command='%s', name='%s')\n", child, command, name);
 
-            if (!cadel_xcb_hide_window(connection, children[i])) {
-                warn("xcb: window 0x%08x could not be hidden.", children[i]);
+            if (!cadel_xcb_hide_window(connection, child)) {
+                warn("xcb: window 0x%08x could not be hidden.", child);
             }
             if (!cadel_xcb_reparent_window(connection, new_parent,
-                    children[i], 0, 0)) {
-                warn("xcb: window 0x%08x could not be reparented.", children[i]);
+                    child, 0, 0)) {
+                warn("xcb: window 0x%08x could not be reparented.", child);
             }
 
-            if (!cadel_xcb_show_window(connection, children[i])) {
-                warn("xcb: window 0x%08x could not be shown.", children[i]);
+            if (!cadel_xcb_show_window(connection, child)) {
+                warn("xcb: window 0x%08x could not be shown.", child);
             }
         }
 
         free(command);
 
-        cadel_xcb_reparent_windows(connection, children[i], new_parent);
+        cadel_xcb_reparent_windows(connection, child, new_parent);
     }
 
-    free(reply);
-
-    if (children_length == 0) {
-        return false;
-    }
+    free(children);
 
     return true;
 }
