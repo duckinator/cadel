@@ -105,10 +105,8 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
     children_length = xcb_query_tree_children_length(reply);
 
     for (int i = 0; i < children_length; i++) {
-        command =
-            cadel_xcb_get_property_string(connection, children[i], "WM_COMMAND");
-        name =
-            cadel_xcb_get_property_string(connection, children[i], "WM_NAME");
+        command = cadel_xcb_get_property_string(connection, children[i], "WM_COMMAND");
+        name    = cadel_xcb_get_property_string(connection, children[i], "WM_NAME");
 
         if ((strncmp(command, "openscad", 8) == 0) &&
                 (strncmp(name, "openscad!", 9) != 0)) {
