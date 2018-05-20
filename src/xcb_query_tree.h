@@ -6,10 +6,9 @@
 typedef struct cadel_xcb_window_list_s {
     xcb_window_t *windows;
     size_t length;
-    xcb_query_tree_reply_t *reply;
 } cadel_xcb_window_list_t;
 
-cadel_xcb_window_list_t *codel_xcb_query_tree(xcb_connection_t *connection,
+cadel_xcb_window_list_t *cadel_xcb_query_tree(xcb_connection_t *connection,
         xcb_window_t root);
 
 #endif

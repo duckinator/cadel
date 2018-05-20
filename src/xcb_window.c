@@ -97,11 +97,6 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         return false;
     }
 
-    if (children->length == 0) {
-        free(children);
-        return false;
-    }
-
     for (int i = 0; i < children->length; i++) {
         child   = children->windows[i];
         command = cadel_xcb_get_property_string(connection, child, "WM_COMMAND");
