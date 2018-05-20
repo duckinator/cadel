@@ -103,7 +103,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
                 children[i], XCB_ATOM_WM_COMMAND);
 
         if (strncmp(command, "openscad", 8) == 0) {
-            printf("Reparenting window 0x%08x (command='%s'\n", children[i], command);
+            printf("Reparenting window 0x%08x (command='%s')\n", children[i], command);
 
             if (!cadel_xcb_hide_window(connection, children[i])) {
                 warn("xcb: window 0x%08x could not be hidden.", children[i]);
