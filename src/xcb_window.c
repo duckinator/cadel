@@ -55,7 +55,7 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
         xcb_reparent_window_checked(connection, window, new_parent, x, y);
 
     xcb_generic_error_t *error = xcb_request_check(connection, cookie);
-    bool succeeded = (error ? false : true);
+    bool succeeded = ((error == NULL) ? true : false);
 
     free(error);
 
@@ -65,7 +65,9 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         xcb_screen_t *screen, xcb_window_t new_parent)
 {
-    bool reparented;
+    size_t matches = 0;
+    size_t reparented = 0;
+    bool _reparented = false;
 
     xcb_get_property_cookie_t name_cookie;
     xcb_get_property_reply_t *name_reply;
@@ -81,7 +83,6 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 
     xcb_window_t *children = xcb_query_tree_children(tree_reply);
     int children_length = xcb_query_tree_children_length(tree_reply);
-    size_t matches = 0;
     for (int i = 0; i < children_length; i++) {
         name_cookie = xcb_get_property(connection, 0, children[i],
                 XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 0, 100);
@@ -91,20 +92,23 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         if (strncmp(name, "openscad", 8) == 0) {
             printf("child window 0x%08x = %s\n", children[i], name);
 
-            reparented = cadel_xcb_reparent_window(connection, new_parent,
+            _reparented = cadel_xcb_reparent_window(connection, new_parent,
                     children[i], 0, 0);
             matches += 1;
+            if (_reparented) {
+                printf("SUCCEEDED reparenting 0x%08x (%s).\n", children[i], name);
+                reparented += 1;
+            } else {
+                printf("FAILED    reparenting 0x%08x (%s).\n", children[i], name);
+            }
         }
 
         free(name_reply);
-        if (!reparented) {
-            break;
-        }
     }
 
     free(tree_reply);
 
-    if (matches == 0) {
+    if (matches == 0 || reparented == 0) {
         return false;
     }
 
