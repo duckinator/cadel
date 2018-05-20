@@ -89,8 +89,8 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         xcb_window_t root, xcb_window_t new_parent)
 {
     xcb_window_t child;
-    char *command = NULL;
-    char *name = NULL;
+    char command[CADEL_XCB_PROPERTY_BYTES] = {0,};
+    char name[CADEL_XCB_PROPERTY_BYTES]    = {0,};
 
     cadel_xcb_window_list_t *children = cadel_xcb_query_tree(connection, root);
     if (!children) {
@@ -99,8 +99,8 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 
     for (int i = 0; i < children->length; i++) {
         child   = children->windows[i];
-        command = cadel_xcb_get_property_string(connection, child, "WM_COMMAND");
-        name    = cadel_xcb_get_property_string(connection, child, "WM_NAME");
+        cadel_xcb_get_property_string((char*)&command, connection, child, "WM_COMMAND");
+        cadel_xcb_get_property_string((char*)&name, connection, child, "WM_NAME");
 
         if ((strncmp(command, "openscad", 8) == 0) &&
                 (strncmp(name, "openscad!", 9) != 0)) {
@@ -119,8 +119,6 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
                 warn("xcb: window 0x%08x could not be shown.", child);
             }
         }
-
-        free(command);
 
         cadel_xcb_reparent_windows(connection, child, new_parent);
     }
