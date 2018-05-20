@@ -21,6 +21,9 @@ pid_t cadel_openscad_start()
             return -1;
         }
         // Child process does not get past here.
+    } else {
+        // HACK: Wait for OpenSCAD to start.
+        sleep(1);
     }
 
     return pid;
