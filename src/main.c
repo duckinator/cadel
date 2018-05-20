@@ -9,6 +9,7 @@
 #include <xcb/xcb.h>
 #include "xcb_errors.h"
 #include "xcb_screen.h"
+#include "xcb_window.h"
 
 void cadel_cleanup(xcb_connection_t *connection)
 {
@@ -42,6 +43,14 @@ int main(int argc, char *argv[])
         return 1;
     }
     cadel_print_screen_information(screen);
+
+    // Create the main window.
+    xcb_window_t window = cadel_xcb_create_window(connection, screen, 0, 0, 150, 150);
+    // Actually display the main window.
+    cadel_xcb_show_window(connection, window);
+
+    // Wait until we get a Ctrl-C.
+    pause();
 
     // If we get here, perform a clean exit.
     cadel_cleanup(connection);
