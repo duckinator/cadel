@@ -1,3 +1,4 @@
+#include <err.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -33,17 +34,35 @@ xcb_window_t cadel_xcb_create_window(xcb_connection_t *connection,
         screen->root_visual,    // What is "visual"?
         0, NULL);               // XCB docs say don't use these.
 
-
     return window;
 }
 
-void cadel_xcb_show_window(xcb_connection_t *connection, xcb_window_t window)
+bool cadel_xcb_show_window(xcb_connection_t *connection, xcb_window_t window)
 {
     // Map the window to the screen.
-    xcb_map_window(connection, window);
+    xcb_void_cookie_t cookie = xcb_map_window_checked(connection, window);
 
     // Wait for commands to be sent.
     xcb_flush(connection);
+
+    xcb_generic_error_t *error = xcb_request_check(connection, cookie);
+    bool succeeded = ((error == NULL) ? true : false);
+
+    return succeeded;
+}
+
+bool cadel_xcb_hide_window(xcb_connection_t *connection, xcb_window_t window)
+{
+    // Unmap the window from the screen.
+    xcb_void_cookie_t cookie = xcb_unmap_window_checked(connection, window);
+
+    // Wait for commands to be sent.
+    xcb_flush(connection);
+
+    xcb_generic_error_t *error = xcb_request_check(connection, cookie);
+    bool succeeded = ((error == NULL) ? true : false);
+
+    return succeeded;
 }
 
 bool cadel_xcb_reparent_window(xcb_connection_t *connection,
@@ -53,6 +72,8 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
     // The return result of this tells us if it was successfully reparented.
     xcb_void_cookie_t cookie =
         xcb_reparent_window_checked(connection, window, new_parent, x, y);
+
+    xcb_flush(connection);
 
     xcb_generic_error_t *error = xcb_request_check(connection, cookie);
     bool succeeded = ((error == NULL) ? true : false);
@@ -65,9 +86,6 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         xcb_screen_t *screen, xcb_window_t new_parent)
 {
-    size_t matches = 0;
-    size_t reparented = 0;
-    bool _reparented = false;
 
     xcb_get_property_cookie_t name_cookie;
     xcb_get_property_reply_t *name_reply;
@@ -90,16 +108,23 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 
         char *name = (char*)xcb_get_property_value(name_reply);
         if (strncmp(name, "openscad", 8) == 0) {
-            printf("child window 0x%08x = %s\n", children[i], name);
+            printf("Reparenting window 0x%08x = %s\n", children[i], name);
 
-            _reparented = cadel_xcb_reparent_window(connection, new_parent,
-                    children[i], 0, 0);
-            matches += 1;
-            if (_reparented) {
-                printf("SUCCEEDED reparenting 0x%08x (%s).\n", children[i], name);
-                reparented += 1;
+            if (!cadel_xcb_hide_window(connection, children[i])) {
+                warn("Failed to hide window 0x%08x (%s).", children[i], name);
             } else {
-                printf("FAILED    reparenting 0x%08x (%s).\n", children[i], name);
+                printf("  - hidden.\n");
+            }
+            if (!cadel_xcb_reparent_window(connection, new_parent,
+                    children[i], 0, 0)) {
+                warn("Failed to reparent window 0x%08x (%s).", children[i], name);
+            } else {
+                printf("  - reparented.\n");
+            }
+            if (!cadel_xcb_show_window(connection, children[i])) {
+                warn("Failed to re-show window 0x%08x (%s)", children[i], name);
+            } else {
+                printf("  - visible.\n");
             }
         }
 
@@ -108,7 +133,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 
     free(tree_reply);
 
-    if (matches == 0 || reparented == 0) {
+    if (children_length == 0) {
         return false;
     }
 

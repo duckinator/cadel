@@ -53,7 +53,12 @@ int main(int argc, char *argv[])
     // Create the main window.
     xcb_window_t window = cadel_xcb_create_window(connection, screen, 0, 0, 150, 150);
     // Actually display the main window.
-    cadel_xcb_show_window(connection, window);
+    bool window_shown = cadel_xcb_show_window(connection, window);
+    if (!window_shown) {
+        PRINT_ERROR();
+        cadel_cleanup(connection);
+        return errno;
+    }
 
     pid_t openscad_pid = cadel_openscad_start();
     if (openscad_pid == -1) {
