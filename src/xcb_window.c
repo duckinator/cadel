@@ -102,25 +102,26 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         cadel_xcb_get_property_string((char*)&command, connection, child, "WM_COMMAND");
         cadel_xcb_get_property_string((char*)&name, connection, child, "WM_NAME");
 
-        if ((strncmp(command, "openscad", 8) == 0) &&
-                (strncmp(name, "openscad!", 9) != 0)) {
+        cadel_xcb_reparent_windows(connection, child, new_parent);
 
-            printf("Reparenting window 0x%08x (command='%s', name='%s')\n", child, command, name);
-
-            if (!cadel_xcb_hide_window(connection, child)) {
-                warn("xcb: window 0x%08x could not be hidden.", child);
-            }
-            if (!cadel_xcb_reparent_window(connection, new_parent,
-                    child, 0, 0)) {
-                warn("xcb: window 0x%08x could not be reparented.", child);
-            }
-
-            if (!cadel_xcb_show_window(connection, child)) {
-                warn("xcb: window 0x%08x could not be shown.", child);
-            }
+        if ((strncmp(command, "openscad", 8) != 0) ||
+                (strncmp(name, "openscad!", 9) == 0)) {
+            continue;
         }
 
-        cadel_xcb_reparent_windows(connection, child, new_parent);
+        printf("Reparenting window 0x%08x (command='%s', name='%s')\n", child, command, name);
+
+        if (!cadel_xcb_hide_window(connection, child)) {
+            warn("xcb: window 0x%08x could not be hidden.", child);
+        }
+        if (!cadel_xcb_reparent_window(connection, new_parent,
+                child, 0, 0)) {
+            warn("xcb: window 0x%08x could not be reparented.", child);
+        }
+
+        if (!cadel_xcb_show_window(connection, child)) {
+            warn("xcb: window 0x%08x could not be shown.", child);
+        }
     }
 
     return true;
