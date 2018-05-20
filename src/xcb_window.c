@@ -1,4 +1,6 @@
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <xcb/xcb.h>
 
 // Subset of the arguments that get passed to xcb_create_window().
@@ -40,4 +42,20 @@ void cadel_xcb_show_window(xcb_connection_t *connection, xcb_window_t window)
 
     // Wait for commands to be sent.
     xcb_flush(connection);
+}
+
+bool cadel_xcb_reparent_window(xcb_connection_t *connection,
+        xcb_window_t new_parent, xcb_window_t window,
+        int16_t x, int16_t y)
+{
+    // The return result of this tells us if it was successfully reparented.
+    xcb_void_cookie_t cookie =
+        xcb_reparent_window_checked(connection, window, new_parent, x, y);
+
+    xcb_generic_error_t *error = xcb_request_check(connection, cookie);
+    bool succeeded = (error ? false : true);
+
+    free(error);
+
+    return succeeded;
 }
