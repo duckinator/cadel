@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
     // Actually display the main window.
     cadel_xcb_show_window(connection, window);
 
-    bool openscad_start_success = cadel_openscad_start();
-    if (!openscad_start_success) {
+    pid_t openscad_pid = cadel_openscad_start();
+    if (openscad_pid == -1) {
         perror(argv[0]);
         cadel_cleanup(connection);
         return errno;
