@@ -87,23 +87,33 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         xcb_window_t root, xcb_window_t new_parent)
 {
-    xcb_query_tree_cookie_t tree_cookie;
-    xcb_query_tree_reply_t *tree_reply;
+    char *command = NULL;
+    char *class = NULL;
 
-    tree_cookie = xcb_query_tree(connection, root);
-    tree_reply = xcb_query_tree_reply(connection, tree_cookie, NULL);
-    if (!tree_reply) {
+    xcb_query_tree_cookie_t cookie;
+    xcb_query_tree_reply_t *reply = NULL;
+    xcb_window_t *children = NULL;
+    int children_length;
+
+    cookie = xcb_query_tree(connection, root);
+    reply = xcb_query_tree_reply(connection, cookie, NULL);
+    if (!reply) {
         return false;
     }
 
-    xcb_window_t *children = xcb_query_tree_children(tree_reply);
-    int children_length = xcb_query_tree_children_length(tree_reply);
+    children = xcb_query_tree_children(reply);
+    children_length = xcb_query_tree_children_length(reply);
+
     for (int i = 0; i < children_length; i++) {
-        char *command = cadel_xcb_get_property_string(connection,
-                children[i], XCB_ATOM_WM_COMMAND);
+        command =
+            cadel_xcb_get_property_string(connection, children[i], "WM_COMMAND");
+        class =
+            cadel_xcb_get_property_string(connection, children[i], "WM_CLASS");
+
+        printf("command='%s', class='%s'\n", command, class);
 
         if (strncmp(command, "openscad", 8) == 0) {
-            printf("Reparenting window 0x%08x (command='%s')\n", children[i], command);
+            printf("Reparenting window 0x%08x (command='%s', class='%s')\n", children[i], command, class);
 
             if (!cadel_xcb_hide_window(connection, children[i])) {
                 warn("xcb: window 0x%08x could not be hidden.", children[i]);
@@ -123,7 +133,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         cadel_xcb_reparent_windows(connection, children[i], new_parent);
     }
 
-    free(tree_reply);
+    free(reply);
 
     if (children_length == 0) {
         return false;
