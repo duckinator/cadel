@@ -1,6 +1,8 @@
 #include "cadel.h"
 #include "debug.h"
 #include <err.h>
+#include <errno.h>
+#include "openscad.h"
 #include "signal_handlers.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -48,6 +50,13 @@ int main(int argc, char *argv[])
     xcb_window_t window = cadel_xcb_create_window(connection, screen, 0, 0, 150, 150);
     // Actually display the main window.
     cadel_xcb_show_window(connection, window);
+
+    bool openscad_start_success = cadel_openscad_start();
+    if (!openscad_start_success) {
+        perror(argv[0]);
+        cadel_cleanup(connection);
+        return errno;
+    }
 
     // Wait until we get a Ctrl-C.
     pause();
