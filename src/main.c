@@ -13,6 +13,10 @@
 #include "xcb_screen.h"
 #include "xcb_window.h"
 
+#define STRINGIFY2(x) #x
+#define STRINGIFY(x) STRINGIFY2(x)
+#define PRINT_ERROR() perror(__FILE__ ":" STRINGIFY(__LINE__));
+
 void cadel_cleanup(xcb_connection_t *connection)
 {
     xcb_disconnect(connection);
@@ -53,7 +57,7 @@ int main(int argc, char *argv[])
 
     pid_t openscad_pid = cadel_openscad_start();
     if (openscad_pid == -1) {
-        perror(argv[0]);
+        PRINT_ERROR();
         cadel_cleanup(connection);
         return errno;
     }
@@ -63,7 +67,7 @@ int main(int argc, char *argv[])
     bool reparented_windows = cadel_xcb_reparent_windows(connection, screen,
             window);
     if (!reparented_windows) {
-        perror(argv[0]);
+        PRINT_ERROR();
         cadel_cleanup(connection);
         return errno;
     }

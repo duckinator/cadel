@@ -65,6 +65,8 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         xcb_screen_t *screen, xcb_window_t new_parent)
 {
+    bool reparented;
+
     xcb_get_property_cookie_t name_cookie;
     xcb_get_property_reply_t *name_reply;
 
@@ -89,12 +91,15 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         if (strncmp(name, "openscad", 8) == 0) {
             printf("child window 0x%08x = %s\n", children[i], name);
 
-            cadel_xcb_reparent_window(connection, new_parent, children[i],
-                    0, 0);
+            reparented = cadel_xcb_reparent_window(connection, new_parent,
+                    children[i], 0, 0);
             matches += 1;
         }
 
         free(name_reply);
+        if (!reparented) {
+            break;
+        }
     }
 
     free(tree_reply);
