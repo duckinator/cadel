@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <xcb/xcb.h>
 
 // Subset of the arguments that get passed to xcb_create_window().
@@ -84,16 +85,15 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
 }
 
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
-        xcb_screen_t *screen, xcb_window_t new_parent)
+        xcb_window_t *root, xcb_window_t new_parent)
 {
-
-    xcb_get_property_cookie_t name_cookie;
-    xcb_get_property_reply_t *name_reply;
+    xcb_get_property_cookie_t property_cookie;
+    xcb_get_property_reply_t *property_reply;
 
     xcb_query_tree_cookie_t tree_cookie;
     xcb_query_tree_reply_t *tree_reply;
 
-    tree_cookie = xcb_query_tree(connection, screen->root);
+    tree_cookie = xcb_query_tree(connection, root);
     tree_reply = xcb_query_tree_reply(connection, tree_cookie, NULL);
     if (!tree_reply) {
         return false;
@@ -102,36 +102,44 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
     xcb_window_t *children = xcb_query_tree_children(tree_reply);
     int children_length = xcb_query_tree_children_length(tree_reply);
     for (int i = 0; i < children_length; i++) {
-        name_cookie = xcb_get_property(connection, 0, children[i],
-                XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 0, 100);
-        name_reply = xcb_get_property_reply(connection, name_cookie, NULL);
+        property_cookie = xcb_get_property(connection, 0, children[i],
+                XCB_ATOM_WM_COMMAND, XCB_ATOM_STRING, 0, 100);
+        property_reply = xcb_get_property_reply(connection, property_cookie, NULL);
 
-        char *name = (char*)xcb_get_property_value(name_reply);
+        char *property = (char*)xcb_get_property_value(property_reply);
 
-        printf("children[%02i] = 0x%08x %s\n", i, children[i], name);
+        printf("children[%02i] = 0x%08x '%s'\n", i, children[i], property);
 
-        if (strncmp(name, "openscad", 8) == 0) {
-            printf("Reparenting window 0x%08x = %s\n", children[i], name);
+        //if (cadel_str_ends_with(property, "openscad")) {
+        if (strncmp(property, "openscad", 8) == 0) {
+            printf("Reparenting window 0x%08x = %s\n", children[i], property);
 
             if (!cadel_xcb_hide_window(connection, children[i])) {
-                warn("Failed to hide window 0x%08x (%s).", children[i], name);
+                warn("Failed to hide window 0x%08x (%s).", children[i], property);
             } else {
                 printf("  - hidden.\n");
             }
+            sleep(3);
             if (!cadel_xcb_reparent_window(connection, new_parent,
                     children[i], 0, 0)) {
-                warn("Failed to reparent window 0x%08x (%s).", children[i], name);
+                warn("Failed to reparent window 0x%08x (%s).", children[i], property);
             } else {
                 printf("  - reparented.\n");
             }
+            sleep(3);
             if (!cadel_xcb_show_window(connection, children[i])) {
-                warn("Failed to re-show window 0x%08x (%s)", children[i], name);
+                warn("Failed to re-show window 0x%08x (%s)", children[i], property);
             } else {
                 printf("  - visible.\n");
             }
         }
+        if (cadel_xcb_reparent_windows(connection, children[i], new_parent)) {
+            printf("  - has child windows.");
+        } else {
+            printf("  - no child windows.");
+        }
 
-        free(name_reply);
+        free(property_reply);
     }
 
     free(tree_reply);

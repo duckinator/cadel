@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
 
     sleep(1); // HACK: Wait for OpenSCAD to spawn.
 
-    bool reparented_windows = cadel_xcb_reparent_windows(connection, screen,
-            window);
+    bool reparented_windows = cadel_xcb_reparent_windows(connection,
+            screen->root, window);
     if (!reparented_windows) {
         PRINT_ERROR();
         cadel_cleanup(connection);
