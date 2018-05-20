@@ -107,6 +107,9 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         name_reply = xcb_get_property_reply(connection, name_cookie, NULL);
 
         char *name = (char*)xcb_get_property_value(name_reply);
+
+        printf("children[%02i] = 0x%08x %s\n", i, children[i], name);
+
         if (strncmp(name, "openscad", 8) == 0) {
             printf("Reparenting window 0x%08x = %s\n", children[i], name);
 
