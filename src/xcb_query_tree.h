@@ -5,7 +5,9 @@
 #include <xcb/xcb.h>
 
 typedef struct cadel_xcb_window_list_s {
-    xcb_window_t *windows;
+    // If you have over 2k windows, you probably have bigger problems
+    // than this not working.
+    xcb_window_t windows[2048];
     size_t length;
 } cadel_xcb_window_list_t;
 

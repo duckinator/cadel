@@ -22,7 +22,6 @@ bool cadel_xcb_query_tree(cadel_xcb_window_list_t *results,
     windows = xcb_query_tree_children(reply);
     results->length  = xcb_query_tree_children_length(reply);
 
-    results->windows = calloc(results->length, sizeof(xcb_window_t));
     memcpy(results->windows, windows, sizeof(xcb_window_t) * results->length);
 
     free(reply);
