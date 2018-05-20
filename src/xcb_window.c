@@ -67,7 +67,7 @@ bool cadel_xcb_hide_window(xcb_connection_t *connection, xcb_window_t window)
     return succeeded;
 }
 
-bool cadel_xcb_reparent_window(xcb_connection_t *connection,
+bool _cadel_xcb_reparent_window(xcb_connection_t *connection,
         xcb_window_t new_parent, xcb_window_t window,
         int16_t x, int16_t y)
 {
@@ -83,6 +83,28 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
     free(error);
 
     return succeeded;
+}
+
+bool cadel_xcb_reparent_window(xcb_connection_t *connection,
+        xcb_window_t new_parent, xcb_window_t window,
+        int16_t x, int16_t y)
+{
+    if (!cadel_xcb_hide_window(connection, window)) {
+        warn("xcb: window 0x%08x could not be hidden.", window);
+        return false;
+    }
+    if (!_cadel_xcb_reparent_window(connection, new_parent,
+            window, 0, 0)) {
+        warn("xcb: window 0x%08x could not be reparented.", window);
+        return false;
+    }
+
+    if (!cadel_xcb_show_window(connection, window)) {
+        warn("xcb: window 0x%08x could not be shown.", window);
+        return false;
+    }
+
+    return true;
 }
 
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
@@ -111,17 +133,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 
         printf("Reparenting window 0x%08x (command='%s', name='%s')\n", child, command, name);
 
-        if (!cadel_xcb_hide_window(connection, child)) {
-            warn("xcb: window 0x%08x could not be hidden.", child);
-        }
-        if (!cadel_xcb_reparent_window(connection, new_parent,
-                child, 0, 0)) {
-            warn("xcb: window 0x%08x could not be reparented.", child);
-        }
-
-        if (!cadel_xcb_show_window(connection, child)) {
-            warn("xcb: window 0x%08x could not be shown.", child);
-        }
+        cadel_xcb_reparent_window(connection, new_parent, child, 0, 0);
     }
 
     return true;
