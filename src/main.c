@@ -58,6 +58,16 @@ int main(int argc, char *argv[])
         return errno;
     }
 
+    sleep(1); // HACK: Wait for OpenSCAD to spawn.
+
+    bool reparented_windows = cadel_xcb_reparent_windows(connection, screen,
+            window);
+    if (!reparented_windows) {
+        perror(argv[0]);
+        cadel_cleanup(connection);
+        return errno;
+    }
+
     // Wait until we get a Ctrl-C.
     pause();
 

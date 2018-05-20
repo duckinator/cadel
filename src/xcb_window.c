@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <xcb/xcb.h>
 
 // Subset of the arguments that get passed to xcb_create_window().
@@ -62,7 +63,7 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
 }
 
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
-        xcb_screen_t *screen, xcb_window_t new_parent_window)
+        xcb_screen_t *screen, xcb_window_t new_parent)
 {
     xcb_get_property_cookie_t name_cookie;
     xcb_get_property_reply_t *name_reply;
@@ -76,25 +77,31 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         return false;
     }
 
-    printf("root = 0x%08x\n", tree_reply->root);
-    printf("parent = 0x%08x\n", tree_reply->parent);
-
     xcb_window_t *children = xcb_query_tree_children(tree_reply);
     int children_length = xcb_query_tree_children_length(tree_reply);
+    size_t matches = 0;
     for (int i = 0; i < children_length; i++) {
         name_cookie = xcb_get_property(connection, 0, children[i],
                 XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 0, 100);
         name_reply = xcb_get_property_reply(connection, name_cookie, NULL);
-        int length = xcb_get_property_value_length(name_reply);
 
-        if (length == 0) {
-            warn("Encountered window with zero-length WM_NAME property.");
-            continue;
+        char *name = (char*)xcb_get_property_value(name_reply);
+        if (strncmp(name, "openscad", 8) == 0) {
+            printf("child window 0x%08x = %s\n", children[i], name);
+
+            cadel_xcb_reparent_window(connection, new_parent, children[i],
+                    0, 0);
+            matches += 1;
         }
-        printf("child window = 0x%08x; %s\n", children[i],
-                (char*)xcb_get_property_value(name_reply));
+
         free(name_reply);
     }
 
     free(tree_reply);
+
+    if (matches == 0) {
+        return false;
+    }
+
+    return true;
 }
