@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <xcb/xcb.h>
 
 // Subset of the arguments that get passed to xcb_create_window().
@@ -119,14 +118,14 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
             } else {
                 printf("  - hidden.\n");
             }
-            sleep(3);
+
             if (!cadel_xcb_reparent_window(connection, new_parent,
                     children[i], 0, 0)) {
                 warn("Failed to reparent window 0x%08x (%s).", children[i], property);
             } else {
                 printf("  - reparented.\n");
             }
-            sleep(3);
+
             if (!cadel_xcb_show_window(connection, children[i])) {
                 warn("Failed to re-show window 0x%08x (%s)", children[i], property);
             } else {
