@@ -53,8 +53,7 @@ int main(int argc, char *argv[])
     // Create the main window.
     xcb_window_t window = cadel_xcb_create_window(connection, screen, 0, 0, 500, 500);
     // Actually display the main window.
-    bool window_shown = cadel_xcb_show_window(connection, window);
-    if (!window_shown) {
+    if (!cadel_xcb_show_window(connection, window)) {
         PRINT_ERROR();
         cadel_cleanup(connection);
         return errno;
@@ -67,9 +66,7 @@ int main(int argc, char *argv[])
         return errno;
     }
 
-    bool reparented_windows = cadel_xcb_reparent_windows(connection,
-            screen->root, window);
-    if (!reparented_windows) {
+    if (!cadel_xcb_reparent_windows(connection, screen->root, window)) {
         PRINT_ERROR();
         cadel_cleanup(connection);
         return errno;
