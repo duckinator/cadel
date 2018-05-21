@@ -126,7 +126,8 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 
         cadel_xcb_reparent_windows(connection, child, new_parent);
 
-        if (strncmp(command, "openscad", 8) != 0) {
+        // The strlen(name) > 9 is some kind of weird bullshit magic.
+        if (strncmp(command, "openscad", 8) != 0 || (strlen(name) > 9)) {
             continue;
         }
 
