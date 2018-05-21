@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include "spawn.h"
 #include "xcb_property.h"
 #include "xcb_window.h"
 
@@ -30,22 +31,10 @@ pid_t cadel_openscad_start()
         NULL,
     };
 
-    pid_t pid = fork();
+    pid_t pid = cadel_spawn("/usr/bin/openscad", argv);
 
-    if (pid == -1) {
-        return -1;
-    }
-
-    if (pid == 0) {
-        int result = execv("/usr/bin/openscad", argv);
-        if (result == -1) {
-            return -1;
-        }
-        // Child process does not get past here.
-    } else {
-        // HACK: Wait for OpenSCAD to start.
-        sleep(1);
-    }
+    // HACK: Wait for OpenSCAD to start.
+    sleep(1);
 
     return pid;
 }
