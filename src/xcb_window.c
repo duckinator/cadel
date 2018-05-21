@@ -94,7 +94,7 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
         return false;
     }
     if (!_cadel_xcb_reparent_window(connection, new_parent,
-            window, 0, 0)) {
+            window, x, y)) {
         warn("xcb: window 0x%08x could not be reparented.", window);
         return false;
     }
