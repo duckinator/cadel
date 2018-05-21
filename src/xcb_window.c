@@ -112,7 +112,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 {
     xcb_window_t child;
 
-    cadel_xcb_window_list_t children;
+    cadel_xcb_window_list_t children = {{0,},};
     if (!cadel_xcb_query_tree(&children, connection, root)) {
         return false;
     }

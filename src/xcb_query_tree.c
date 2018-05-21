@@ -17,8 +17,6 @@ bool cadel_xcb_query_tree(cadel_xcb_window_list_t *results,
         return false;
     }
 
-    memset(results, 0, sizeof(cadel_xcb_window_list_t));
-
     windows = xcb_query_tree_children(reply);
     results->length  = xcb_query_tree_children_length(reply);
 
