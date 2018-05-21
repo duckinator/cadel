@@ -65,8 +65,6 @@ int main(int argc, char *argv[])
         cadel_cleanup(connection);
         return errno;
     }
-    // HACK: Wait for OpenSCAD to start.
-    sleep(1);
 
     pid_t urxvt_pid = cadel_spawn("/usr/bin/urxvt", "cadel-urxvt", argv);
     if (urxvt_pid == -1) {
@@ -74,6 +72,9 @@ int main(int argc, char *argv[])
         cadel_cleanup(connection);
         return errno;
     }
+
+    // HACK: Wait for everything to start.
+    sleep(1);
 
     if (!cadel_xcb_reparent_windows(connection, screen->root, window)) {
         PRINT_ERROR();

@@ -117,7 +117,7 @@ bool cadel_xcb_reparent_callback(xcb_connection_t *connection,
 
     cadel_xcb_reparent_windows(connection, child, new_parent);
 
-    if (strncmp(command, "cadel-openscad", 14) == 0) {
+    if (strncmp(command, "cadel-", 6) == 0) {
         printf("Reparenting window 0x%08x (command='%s')\n", child, command);
         cadel_xcb_reparent_window(connection, new_parent, child, 0, 0);
     }
