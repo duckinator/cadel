@@ -2,7 +2,6 @@
 #include "debug.h"
 #include <err.h>
 #include <errno.h>
-#include "openscad.h"
 #include "signal_handlers.h"
 #include "spawn.h"
 #include <stdbool.h>
@@ -70,8 +69,7 @@ int main(int argc, char *argv[])
     sleep(1);
 
 
-    if (!cadel_xcb_reparent_windows(connection, screen->root, window,
-                cadel_openscad_reparent)) {
+    if (!cadel_xcb_reparent_windows(connection, screen->root, window)) {
         PRINT_ERROR();
         cadel_cleanup(connection);
         return errno;

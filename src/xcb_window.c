@@ -108,9 +108,23 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
     return true;
 }
 
+bool cadel_xcb_reparent_callback(xcb_connection_t *connection,
+        xcb_window_t root, xcb_window_t new_parent, xcb_window_t child)
+{
+    char command[CADEL_XCB_PROPERTY_BYTES] = {0,};
+
+    cadel_xcb_get_property_string((char*)&command, connection, child, "WM_COMMAND");
+
+    cadel_xcb_reparent_windows(connection, child, new_parent);
+
+    if (strncmp(command, "cadel-openscad", 14) == 0) {
+        printf("Reparenting window 0x%08x (command='%s')\n", child, command);
+        cadel_xcb_reparent_window(connection, new_parent, child, 0, 0);
+    }
+}
+
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
-        xcb_window_t root, xcb_window_t new_parent,
-        cadel_reparent_callback *callback)
+        xcb_window_t root, xcb_window_t new_parent)
 {
     cadel_xcb_window_list_t children = {{0,}, 0};
     if (!cadel_xcb_query_tree(&children, connection, root)) {
@@ -118,7 +132,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
     }
 
     for (size_t i = 0; i < children.length; i++) {
-        callback(connection, root, new_parent, children.windows[i]);
+        cadel_xcb_reparent_callback(connection, root, new_parent, children.windows[i]);
     }
 
     return true;
