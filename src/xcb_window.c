@@ -7,6 +7,7 @@
 #include <xcb/xcb.h>
 #include "xcb_property.h"
 #include "xcb_query_tree.h"
+#include "xcb_window.h"
 
 // Subset of the arguments that get passed to xcb_create_window().
 // https://xcb.freedesktop.org/tutorial/basicwindowsanddrawing/
@@ -108,27 +109,16 @@ bool cadel_xcb_reparent_window(xcb_connection_t *connection,
 }
 
 bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
-        xcb_window_t root, xcb_window_t new_parent)
+        xcb_window_t root, xcb_window_t new_parent,
+        cadel_reparent_callback *callback)
 {
-    xcb_window_t child;
-
     cadel_xcb_window_list_t children = {{0,}, 0};
     if (!cadel_xcb_query_tree(&children, connection, root)) {
         return false;
     }
 
     for (size_t i = 0; i < children.length; i++) {
-        char command[CADEL_XCB_PROPERTY_BYTES] = {0,};
-        child = children.windows[i];
-
-        cadel_xcb_get_property_string((char*)&command, connection, child, "WM_COMMAND");
-
-        cadel_xcb_reparent_windows(connection, child, new_parent);
-
-        if (strncmp(command, "openscad", 8) == 0) {
-            printf("Reparenting window 0x%08x (command='%s')\n", child, command);
-            cadel_xcb_reparent_window(connection, new_parent, child, 0, 0);
-        }
+        callback(connection, root, new_parent, children.windows[i]);
     }
 
     return true;

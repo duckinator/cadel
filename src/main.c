@@ -66,7 +66,8 @@ int main(int argc, char *argv[])
         return errno;
     }
 
-    if (!cadel_xcb_reparent_windows(connection, screen->root, window)) {
+    if (!cadel_xcb_reparent_windows(connection, screen->root, window,
+                cadel_openscad_reparent)) {
         PRINT_ERROR();
         cadel_cleanup(connection);
         return errno;
