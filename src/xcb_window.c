@@ -117,7 +117,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         return false;
     }
 
-    for (int i = 0; i < children.length; i++) {
+    for (size_t i = 0; i < children.length; i++) {
         char command[CADEL_XCB_PROPERTY_BYTES] = {0,};
         child = children.windows[i];
 
