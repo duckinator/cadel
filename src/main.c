@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         return errno;
     }
 
-    pid_t openscad_pid = cadel_openscad_start();
+    pid_t openscad_pid = cadel_openscad_start(argv);
     if (openscad_pid == -1) {
         PRINT_ERROR();
         cadel_cleanup(connection);

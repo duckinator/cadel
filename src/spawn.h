@@ -3,6 +3,6 @@
 
 #include <unistd.h>
 
-pid_t cadel_spawn(char *filename, char *argv[]);
+pid_t cadel_spawn(char *filename, char *new_argv0, char *argv_[]);
 
 #endif

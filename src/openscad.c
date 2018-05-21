@@ -15,7 +15,7 @@ bool cadel_openscad_reparent(xcb_connection_t *connection,
 
     cadel_xcb_reparent_windows(connection, child, new_parent, cadel_openscad_reparent);
 
-    if (strncmp(command, "openscad", 8) == 0) {
+    if (strncmp(command, "cadel-openscad", 14) == 0) {
         printf("Reparenting window 0x%08x (command='%s')\n", child, command);
         cadel_xcb_reparent_window(connection, new_parent, child, 0, 0);
     }
@@ -24,14 +24,9 @@ bool cadel_openscad_reparent(xcb_connection_t *connection,
 }
 
 
-pid_t cadel_openscad_start()
+pid_t cadel_openscad_start(char *argv[])
 {
-    char *argv[] = {
-        "openscad",
-        NULL,
-    };
-
-    pid_t pid = cadel_spawn("/usr/bin/openscad", argv);
+    pid_t pid = cadel_spawn("/usr/bin/openscad", "cadel-openscad", argv);
 
     // HACK: Wait for OpenSCAD to start.
     sleep(1);
