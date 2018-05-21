@@ -15,8 +15,6 @@ char *cadel_xcb_get_property_string(char *buffer,
     xcb_get_property_reply_t *reply;
     char *original_value;
 
-    memset(buffer, 0, CADEL_XCB_PROPERTY_BYTES);
-
     atom_cookie = xcb_intern_atom(connection, 0, strlen(type), type);
     atom_reply = xcb_intern_atom_reply(connection, atom_cookie, NULL);
     if (atom_reply == NULL) {

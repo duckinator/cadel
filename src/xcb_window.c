@@ -111,7 +111,6 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         xcb_window_t root, xcb_window_t new_parent)
 {
     xcb_window_t child;
-    char command[CADEL_XCB_PROPERTY_BYTES] = {0,};
 
     cadel_xcb_window_list_t children;
     if (!cadel_xcb_query_tree(&children, connection, root)) {
@@ -119,7 +118,9 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
     }
 
     for (int i = 0; i < children.length; i++) {
+        char command[CADEL_XCB_PROPERTY_BYTES] = {0,};
         child = children.windows[i];
+
         cadel_xcb_get_property_string((char*)&command, connection, child, "WM_COMMAND");
 
         cadel_xcb_reparent_windows(connection, child, new_parent);
