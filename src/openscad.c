@@ -22,14 +22,3 @@ bool cadel_openscad_reparent(xcb_connection_t *connection,
 
     return true;
 }
-
-
-pid_t cadel_openscad_start(char *argv[])
-{
-    pid_t pid = cadel_spawn("/usr/bin/openscad", "cadel-openscad", argv);
-
-    // HACK: Wait for OpenSCAD to start.
-    sleep(1);
-
-    return pid;
-}

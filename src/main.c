@@ -4,6 +4,7 @@
 #include <errno.h>
 #include "openscad.h"
 #include "signal_handlers.h"
+#include "spawn.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,12 +60,15 @@ int main(int argc, char *argv[])
         return errno;
     }
 
-    pid_t openscad_pid = cadel_openscad_start(argv);
+    pid_t openscad_pid = cadel_spawn("/usr/bin/openscad", "cadel-openscad", argv);
     if (openscad_pid == -1) {
         PRINT_ERROR();
         cadel_cleanup(connection);
         return errno;
     }
+    // HACK: Wait for OpenSCAD to start.
+    sleep(1);
+
 
     if (!cadel_xcb_reparent_windows(connection, screen->root, window,
                 cadel_openscad_reparent)) {
