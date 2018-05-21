@@ -119,7 +119,7 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
         return false;
     }
 
-    for (int i = children.length - 1; i >= 0; i--) {
+    for (int i = 0; i < children.length; i++) {
         child = children.windows[i];
         cadel_xcb_get_property_string((char*)&command, connection, child, "WM_COMMAND");
         cadel_xcb_get_property_string((char*)&name, connection, child, "WM_NAME");
