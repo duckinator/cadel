@@ -126,8 +126,8 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 
         cadel_xcb_reparent_windows(connection, child, new_parent);
 
-        if ((strncmp(command, "openscad", 8) != 0) ||
-                (strncmp(name, "openscad!", 9) == 0)) {
+        if (!((strncmp(command, "openscad", 8) == 0) &&
+                (strncmp(name, "openscad!", 9) != 0))) {
             continue;
         }
 
