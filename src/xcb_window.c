@@ -112,7 +112,6 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
 {
     xcb_window_t child;
     char command[CADEL_XCB_PROPERTY_BYTES] = {0,};
-    char name[CADEL_XCB_PROPERTY_BYTES]    = {0,};
 
     cadel_xcb_window_list_t children;
     if (!cadel_xcb_query_tree(&children, connection, root)) {
@@ -122,16 +121,14 @@ bool cadel_xcb_reparent_windows(xcb_connection_t *connection,
     for (int i = 0; i < children.length; i++) {
         child = children.windows[i];
         cadel_xcb_get_property_string((char*)&command, connection, child, "WM_COMMAND");
-        cadel_xcb_get_property_string((char*)&name, connection, child, "WM_NAME");
 
         cadel_xcb_reparent_windows(connection, child, new_parent);
 
-        // The strlen(name) > 9 is some kind of weird bullshit magic.
-        if (strncmp(command, "openscad", 8) != 0 || (strlen(name) > 9)) {
+        if (strncmp(command, "openscad", 8) != 0) {
             continue;
         }
 
-        printf("Reparenting window 0x%08x (command='%s', name='%s')\n", child, command, name);
+        printf("Reparenting window 0x%08x (command='%s')\n", child, command);
 
         cadel_xcb_reparent_window(connection, new_parent, child, 0, 0);
     }
